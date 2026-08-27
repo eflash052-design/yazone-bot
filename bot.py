@@ -1,4 +1,4 @@
-import os
+  import os
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -84,7 +84,7 @@ async def button_click_handler(update: Update, context: ContextTypes.DEFAULT_TYP
         
         text = (
             f"🛍️ **የ{category_name} ምርት ማዘዣ**\n\n"
-            "እባክዎን የሚፈልጉትን ትክክለኛ የምርት ፎቶ ወይም ስም ይላኩ፦\n"
+            "እባክዎን የሚፈልጉትን ምርት **ፎቶ** ወይም **ስም** ይላኩልን፦\n"
             "(Please send the photo or exact name of the product you want:)"
         )
         await query.message.edit_text(text, parse_mode="Markdown", reply_markup=get_back_keyboard())
@@ -93,8 +93,8 @@ async def button_click_handler(update: Update, context: ContextTypes.DEFAULT_TYP
         context.user_data['state'] = 'WAITING_FEEDBACK'
         text = (
             "💬 **ሀሳብና አስተያየት | Feedback**\n\n"
-            "እባክዎን አስተያየትዎን፣ ጥያቄዎን ወይም አስተያየትዎን በጽሁፍ ያስገቡልን፦\n"
-            "(Please send us your message, feedback, or inquiry:)"
+            "እባክዎን አስተያየትዎን፣ ጥያቄዎን ወይም መልእክትዎን በጽሁፍ ያስገቡልን፦\n"
+            "(Please send us your message or feedback:)"
         )
         await query.message.edit_text(text, parse_mode="Markdown", reply_markup=get_back_keyboard())
 
@@ -104,19 +104,17 @@ async def button_click_handler(update: Update, context: ContextTypes.DEFAULT_TYP
             "1. አላስፈላጊ ማስታወቂያና ሊንክ መላክ የተከለከለ ነው።\n"
             "   (Sending spam or unauthorized links is prohibited.)\n\n"
             "2. ስድብና ያልተገቡ ቃላትን መጠቀም አይቻልም።\n"
-            "   (Inappropriate language or disrespect is strictly not allowed.)\n\n"
+            "   (Inappropriate language is strictly prohibited.)\n\n"
             "3. ትዕዛዝ ሲያዙ ትክክለኛ መረጃ፣ አድራሻ እና ቀነ ቀጠሮ ያስገቡ።\n"
-            "   (Provide accurate information, address, and date when placing an order.)\n\n"
-            "4. **በአንድነት መስራት፣ ሀሳብ መለዋወጥ እና አብሮ ማደግን ይደግፋል።**\n"
-            "   (**Supports working together, exchanging ideas, and growing together.**)"
+            "   (Provide accurate details, address, and preferred delivery date.)\n\n"
+            "4. **በአንድነት መስራት፣ ሀሳብ መለዋወጥ እና አብሮ ማደግን እንደግፋለን!**"
         )
         await query.message.edit_text(rules_text, parse_mode="Markdown", reply_markup=get_back_keyboard())
 
     elif data == "btn_about":
         about_text = (
             "ℹ️ **ስለ Yazone Store | About Us**\n\n"
-            "እንኳን ወደ **Yazone Store** በሰላም መጡ! እኛ ጥራት ያላቸውን የመዋቢያ እና የኤሌክትሮኒክስ ምርቶች በተጣጣመ ዋጋ እና በታማኝነት እናቀርባለን።\n\n"
-            "Welcome to **Yazone Store**! We provide quality cosmetics and electronic products with reliable service and competitive prices."
+            "እንኳን ወደ **Yazone Store** በሰላም መጡ! እኛ የሚፈልጉትን ጥራት ያላቸው የመዋቢያ እና የኤሌክትሮኒክስ ምርቶች በተጣጣመ ዋጋ እና በታማኝነት እናቀርባለን።"
         )
         await query.message.edit_text(about_text, parse_mode="Markdown", reply_markup=get_back_keyboard())
 
@@ -125,7 +123,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text_content = update.message.text or update.message.caption or ""
 
-    # STEP 1: Product photo/name received -> Ask for date, address & phone
+    # STEP 1: Customer sends product photo or name
     if state == 'WAITING_PRODUCT_INFO':
         context.user_data['product_info'] = text_content if text_content else "የምርት ፎቶ ተልኳል (Product Photo Sent)"
         if update.message.photo:
@@ -133,12 +131,15 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         context.user_data['state'] = 'WAITING_DATE_ADDRESS'
         await update.message.reply_text(
-            "በመቀጠል የሚፈልጉበትን ትክክለኛ ቀነ ቀጠሮ፣ አድራሻዎን እና የስልክ ቁጥርዎን ያስገቡ፦\n"
-            "(Next, please enter your preferred delivery date, address, and contact phone number:)",
+            "በጣም ጥሩ! አሁን ደግሞ የሚከተሉትን መረጃዎች በአንድ ላይ ጽፈው ይላኩልን፦\n\n"
+            "1. **ስልክ ቁጥርዎ**\n"
+            "2. **እቃው እንዲደርስዎት የሚፈልጉበት ቀን (ቀነ-ቀጠሮ)**\n"
+            "3. **ትክክለኛ አድራሻዎ**\n\n"
+            "(Please send your Phone Number, Preferred Delivery Date, and Address:)",
             reply_markup=get_back_keyboard()
         )
 
-    # STEP 2: Details received -> Send order summary to Admin
+    # STEP 2: Customer sends details -> Send complete order to Admin
     elif state == 'WAITING_DATE_ADDRESS':
         context.user_data['date_address'] = text_content
         category = context.user_data.get('category', 'ምርት')
@@ -147,11 +148,11 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo_id = context.user_data.get('photo_id')
 
         admin_msg = (
-            "🚨 **አዲስ ትዕዛዝ ደርሷል! (New Order Received!)**\n\n"
-            f"🏷️ **ምድብ (Category):** {category}\n"
-            f"📦 **ምርት/ፎቶ (Product/Photo):** {product_info}\n"
-            f"📅📍 **ቀነ ቀጠሮ፣ አድራሻ እና ስልክ:**\n{date_address}\n\n"
-            f"👤 **ደንበኛ (Name):** {user.full_name}\n"
+            "🚨 **አዲስ ትዕዛዝ ደርሷል! (New Order)**\n\n"
+            f"🏷️ **ምድብ:** {category}\n"
+            f"📦 **የተጠየቀው ምርት/ፎቶ:** {product_info}\n\n"
+            f"📋 **የደንበኛ መረጃ (ስልክ/ቀን/አድራሻ):**\n{date_address}\n\n"
+            f"👤 **የደንበኛ ስም:** {user.full_name}\n"
             f"💬 **Telegram:** @{user.username if user.username else 'የለውም'}\n"
             f"🆔 **User ID:** `{user.id}`"
         )
@@ -163,18 +164,19 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(chat_id=ADMIN_ID, text=admin_msg, parse_mode="Markdown")
 
         await update.message.reply_text(
-            "✅ ትዕዛዝዎ በጥሩ ሁኔታ ተልኳል! እናመሰግናለን፣ በቅርቡ እናነጋግርዎታለን።\n"
-            "(Your order has been submitted successfully! Thank you, we will contact you shortly.)",
+            "✅ **ትዕዛዝዎ በጥሩ ሁኔታ ደርሶናል!**\n\n"
+            "የመረጡትን ምርት ዋጋ አጣርተን በቅርቡ በስልክ ወይም በቴሌግራም እናሳውቅዎታለን። እናመሰግናለን!\n"
+            "(We will check the price and get back to you shortly. Thank you!)",
             reply_markup=get_back_keyboard()
         )
         context.user_data.clear()
 
-    # Feedback state handling
+    # Feedback Handling
     elif state == 'WAITING_FEEDBACK':
         fb_msg = (
-            "💬 **አዲስ አስተያየት ደርሷል! (New Feedback Received!)**\n\n"
-            f"📝 **መልእክት (Message):** {text_content}\n\n"
-            f"👤 **ስም (Name):** {user.full_name}\n"
+            "💬 **አዲስ አስተያየት ደርሷል!**\n\n"
+            f"📝 **መልእክት:** {text_content}\n\n"
+            f"👤 **ስም:** {user.full_name}\n"
             f"💬 **Telegram:** @{user.username if user.username else 'የለውም'}\n"
             f"🆔 **User ID:** `{user.id}`"
         )
@@ -182,13 +184,12 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=ADMIN_ID, text=fb_msg, parse_mode="Markdown")
 
         await update.message.reply_text(
-            "✅ ሀሳብና አስተያየትዎ ደርሶናል! ስለሰጡን አስተያየት እናመሰግናለን።\n"
-            "(Thank you! Your feedback has been received.)",
+            "✅ ሀሳብና አስተያየትዎ ደርሶናል! ስለሰጡን አስተያየት እናመሰግናለን።",
             reply_markup=get_back_keyboard()
         )
         context.user_data.clear()
 
-    # AI Chat via Gemini for general messages
+    # AI Chat via Gemini for general questions
     else:
         if model:
             try:
@@ -196,12 +197,12 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text(response.text)
             except Exception:
                 await update.message.reply_text(
-                    "ይቅርታ፣ መልስ ለመስጠት አልተቻለም። እባክዎን ከታች ካሉት አማራጮች ይጠቀሙ፦",
+                    "እባክዎን ከታች ካሉት አማራጮች ይጠቀሙ፦",
                     reply_markup=get_main_keyboard()
                 )
         else:
             await update.message.reply_text(
-                "እባክዎን ከታች ካሉት አማራጮች አንዱን ይምረጡ፦\n(Please select an option below:)",
+                "እባክዎን ከታች ካሉት አማራጮች አንዱን ይምረጡ፦",
                 reply_markup=get_main_keyboard()
             )
 
